@@ -15,6 +15,8 @@ import {
   isArgsValid,
 } from '~/libraries/ui/Commands'
 import { Friend } from '~/types/ui/friends'
+import { input } from '@tensorflow/tfjs-layers'
+import { concat } from 'fp-ts/lib/ReadonlyNonEmptyArray'
 
 declare module 'vue/types/vue' {
   interface Vue {
@@ -180,6 +182,15 @@ export default Vue.extend({
       sel?.selectAllChildren(messageBox)
       sel?.collapseToEnd()
     },
+    emojiWrapper(e: any, b: string[]) {
+        if(e.includes(b)){
+          return '<span class="bigEmoji">' + e + '</span>'
+        }
+        else{
+          return e
+        }
+
+    },
     /**
      * @method sendMessage
      * @description Sends message by calling the sendMessage action with current data and
@@ -190,6 +201,61 @@ export default Vue.extend({
       if (!this.recipient) {
         return
       }
+      const inputText = '🤌..H E Y K A T ! s&nbsp;d💎 🐱'
+// const inputText = '..H E Y K A T ! s&nbsp;'
+// const inputText = '💎 🐱🤌'
+
+// remove whitespace, emojis, to test if there is anything else in the string
+let newInput = inputText.replace(/\s|[&nbsp;]|\p{Emoji}/ug,'')
+let emojiArray = inputText.match( /\p{Emoji}/ug)
+
+let newEmojis = emojiArray.map(element => element.charCodeAt(0));
+// console.log(newEmojis)
+
+// console.log(newInput)
+// console.log(emojiArray)
+// console.log(typeof inputText)
+// console.log(inputText)
+// console.log(typeof inputText[0])
+// console.log(inputText[0].charCodeAt(0))
+// console.log(newEmojis)
+
+// console.log(emoji.codePointAt(inputText[0]))
+
+
+// let spanInput = '<span class="blueText">' + newInput + '</span>'
+// newInput = spanInput
+
+if(newInput && emojiArray && newEmojis){
+  console.log('there is stuff in the string, leave the font size small')
+  let newText = ""
+  for(let i = 0; i < inputText.length; i ++){
+    // console.log(emojiArray)
+    // console.log(inputText)
+    // console.log(inputText[i])
+    let checkEmoji = inputText[i].charCodeAt(0)
+    // console.log(checkEmoji)
+    // console.log(newEmojis)
+
+    console.log(newEmojis.includes(checkEmoji))
+        if(newEmojis.includes(checkEmoji)){
+          console.log("add emoji")
+          newText.concat('<span class="medEmoji">' + inputText[i] + '</span>')
+        }
+        else{
+          console.log("add whatever")
+
+          newText.concat(inputText[i])
+        }
+  }
+  console.log(newText)
+  newInput = newText
+}
+if(!newInput){
+  console.log('there is not stuff in the string, so it\'s just emojis and you can make the text bigger')
+  let bigText = '<span class="bigEmoji">' + inputText+ '</span>'
+  newInput = bigText
+}
 
       if (this.ui.replyChatbarContent.from) {
         this.$store.dispatch('textile/sendReplyMessage', {
@@ -198,9 +264,11 @@ export default Vue.extend({
           replyTo: this.ui.replyChatbarContent.messageID,
         })
       } else {
+        console.log("mew meow meow meow", this.value)
         this.$store.dispatch('textile/sendTextMessage', {
+          
           to: this.recipient.textilePubkey,
-          text: this.value,
+          text: newInput,
         })
       }
 
